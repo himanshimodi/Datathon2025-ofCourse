@@ -10,14 +10,24 @@ const App = () => {
       name: "TechCorp Inc",
       type: "Technology",
       foundedYear: "1995",
-      info: "Leading provider of cloud computing solutions"
+      info: {
+        marketCap: "$50B",
+        stockPE: "25.4",
+        currentValue: "$150.75",
+        roe: "18.5%"
+      }
     },
     {
       id: 2,
       name: "GreenEnergy Co",
       type: "Renewable Energy",
       foundedYear: "2010",
-      info: "Pioneering sustainable energy solutions"
+      info: {
+        marketCap: "$2.5B",
+        stockPE: "30.2",
+        currentValue: "$45.60",
+        roe: "12.8%"
+      }
     }
   ]);
 
@@ -25,12 +35,27 @@ const App = () => {
     name: "",
     type: "",
     foundedYear: "",
-    info: ""
+    info: {
+      marketCap: "",
+      stockPE: "",
+      currentValue: "",
+      roe: ""
+    }
   });
 
   const handleAddCompany = () => {
     setCompanies([...companies, { ...newCompany, id: companies.length + 1 }]);
-    setNewCompany({ name: "", type: "", foundedYear: "", info: "" });
+    setNewCompany({
+      name: "",
+      type: "",
+      foundedYear: "",
+      info: {
+        marketCap: "",
+        stockPE: "",
+        currentValue: "",
+        roe: ""
+      }
+    });
     setShowModal(false);
   };
 
@@ -101,12 +126,48 @@ const App = () => {
                       value={newCompany.foundedYear}
                       onChange={(e) => setNewCompany({...newCompany, foundedYear: e.target.value})}
                     />
-                    <textarea
-                      placeholder="Company Information"
-                      className="w-full p-2 border rounded"
-                      value={newCompany.info}
-                      onChange={(e) => setNewCompany({...newCompany, info: e.target.value})}
-                    />
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        placeholder="Market Cap"
+                        className="w-full p-2 border rounded"
+                        value={newCompany.info.marketCap}
+                        onChange={(e) => setNewCompany({
+                          ...newCompany,
+                          info: { ...newCompany.info, marketCap: e.target.value }
+                        })}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Stock P/E"
+                        className="w-full p-2 border rounded"
+                        value={newCompany.info.stockPE}
+                        onChange={(e) => setNewCompany({
+                          ...newCompany,
+                          info: { ...newCompany.info, stockPE: e.target.value }
+                        })}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Current Value"
+                        className="w-full p-2 border rounded"
+                        value={newCompany.info.currentValue}
+                        onChange={(e) => setNewCompany({
+                          ...newCompany,
+                          info: { ...newCompany.info, currentValue: e.target.value }
+                        })}
+                      />
+                      <input
+                        type="text"
+                        placeholder="ROE"
+                        className="w-full p-2 border rounded"
+                        value={newCompany.info.roe}
+                        onChange={(e) => setNewCompany({
+                          ...newCompany,
+                          info: { ...newCompany.info, roe: e.target.value }
+                        })}
+                      />
+                    </div>
                     <div className="flex justify-end space-x-2">
                       <button
                         onClick={() => setShowModal(false)}
@@ -133,7 +194,12 @@ const App = () => {
                   <div className="space-y-2">
                     <p><strong>Type:</strong> {company.type}</p>
                     <p><strong>Founded:</strong> {company.foundedYear}</p>
-                    <p><strong>Info:</strong> {company.info}</p>
+                    <div className="mt-4">
+                      <p><strong>Market Cap:</strong> {company.info.marketCap}</p>
+                      <p><strong>Stock P/E:</strong> {company.info.stockPE}</p>
+                      <p><strong>Current Value:</strong> {company.info.currentValue}</p>
+                      <p><strong>ROE:</strong> {company.info.roe}</p>
+                    </div>
                   </div>
                   <button
                     className="mt-4 w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
@@ -160,8 +226,25 @@ const App = () => {
                       >
                         Company Info
                       </button>
-                      <div className="hidden group-hover:block absolute z-10 w-48 p-2 bg-gray-800 text-white text-sm rounded shadow-lg">
-                        {company.info}
+                      <div className="hidden group-hover:block absolute z-10 w-64 p-4 bg-gray-800 text-white text-sm rounded shadow-lg">
+                        <div className="space-y-2">
+                          <p className="flex justify-between">
+                            <span>Market Cap:</span>
+                            <span className="font-semibold">{company.info.marketCap}</span>
+                          </p>
+                          <p className="flex justify-between">
+                            <span>Stock P/E:</span>
+                            <span className="font-semibold">{company.info.stockPE}</span>
+                          </p>
+                          <p className="flex justify-between">
+                            <span>Current Value:</span>
+                            <span className="font-semibold">{company.info.currentValue}</span>
+                          </p>
+                          <p className="flex justify-between">
+                            <span>ROE:</span>
+                            <span className="font-semibold">{company.info.roe}</span>
+                          </p>
+                        </div>
                       </div>
                     </div>
                     <button
