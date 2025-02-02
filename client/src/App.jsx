@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { PlusCircle, Building2, Users, FileText, Heart } from 'lucide-react';
+import { PlusCircle, Building2, Users, FileText, Heart, ArrowLeft, Search, Star } from 'lucide-react';
 
 const App = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [favorites, setFavorites] = useState([]);
+  const [currentView, setCurrentView] = useState('home');
+  const [searchQuery, setSearchQuery] = useState('');
   const [companies, setCompanies] = useState([
     {
       id: 1,
@@ -60,6 +62,10 @@ const App = () => {
     setShowModal(false);
   };
 
+  const handleDeleteCompany = (companyId) => {
+    setCompanies(companies.filter(company => company.id !== companyId));
+  };
+
   const toggleFavorite = (companyId) => {
     if (favorites.includes(companyId)) {
       setFavorites(favorites.filter(id => id !== companyId));
@@ -68,7 +74,31 @@ const App = () => {
     }
   };
 
-  const favoriteCompanies = companies.filter(company => favorites.includes(company.id));
+  const filterCompanies = (companies) => {
+    if (!searchQuery) return companies;
+    return companies.filter(company => 
+      company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      company.type.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  };
+
+  const favoriteCompanies = filterCompanies(companies.filter(company => favorites.includes(company.id)));
+  const filteredCompanies = filterCompanies(companies);
+
+  const SearchBar = () => (
+    <div className="relative mb-6">
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <Search className="h-5 w-5 text-gray-400" />
+      </div>
+      <input
+        type="text"
+        placeholder="Search companies by name or type..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+  );
 
   const CompanyCard = ({ company, showAdmin = false }) => (
     <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow relative">
@@ -120,7 +150,10 @@ const App = () => {
           </button>
         )}
         {showAdmin && (
-          <button className="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+          <button
+            onClick={() => handleDeleteCompany(company.id)}
+            className="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
             Delete Company
           </button>
         )}
@@ -128,168 +161,274 @@ const App = () => {
     </div>
   );
 
-  return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className="w-64 bg-white shadow-lg">
-        <div className="p-4">
-          <h1 className="text-2xl font-bold text-blue-600">MarketSage</h1>
+  const HomePage = () => (
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-8">
+      <div className="text-center space-y-12">
+        <h1 className="text-5xl font-bold text-blue-600">Welcome to MarketSage</h1>
+        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          Your comprehensive platform for managing and analyzing company information
+        </p>
+        <div className="flex gap-6 justify-center">
+          <button
+            onClick={() => {
+              setCurrentView('user');
+              setIsAdmin(false);
+            }}
+            className="px-8 py-4 bg-blue-600 text-white text-lg rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
+            <Users className="h-6 w-6" />
+            Enter as User
+          </button>
+          <button
+            onClick={() => {
+              setCurrentView('admin');
+              setIsAdmin(true);
+            }}
+            className="px-8 py-4 bg-gray-800 text-white text-lg rounded-lg hover:bg-gray-900 transition-colors flex items-center gap-2"
+          >
+            <Building2 className="h-6 w-6" />
+            Enter as Admin
+          </button>
         </div>
-        <nav className="mt-6">
-          <div 
-            className="flex items-center px-4 py-2 cursor-pointer hover:bg-blue-50"
-            onClick={() => setIsAdmin(false)}
-          >
-            <Building2 className="mr-3" />
-            <span>Companies</span>
-          </div>
-          <div 
-            className="flex items-center px-4 py-2 cursor-pointer hover:bg-blue-50"
-            onClick={() => setIsAdmin(true)}
-          >
-            <Users className="mr-3" />
-            <span>Admin Panel</span>
-          </div>
-        </nav>
       </div>
+    </div>
+  );
 
-      {/* Main Content */}
+  const UserNavigation = () => (
+    <div className="w-64 bg-white shadow-lg">
+      <div className="p-4">
+        <h1 className="text-2xl font-bold text-blue-600">MarketSage</h1>
+      </div>
+      <nav className="mt-6 space-y-2">
+        <div 
+          className="flex items-center px-4 py-2 cursor-pointer hover:bg-blue-50"
+          onClick={() => setCurrentView('home')}
+        >
+          <ArrowLeft className="mr-3" />
+          <span>Back to Home</span>
+        </div>
+        <div 
+          className="flex items-center px-4 py-2 cursor-pointer hover:bg-blue-50"
+          onClick={() => setCurrentView('user')}
+        >
+          <Users className="mr-3" />
+          <span>User Panel</span>
+        </div>
+        <div 
+          className="flex items-center px-4 py-2 cursor-pointer hover:bg-blue-50"
+          onClick={() => setCurrentView('favorites')}
+        >
+          <Star className="mr-3" />
+          <span>Favorites</span>
+        </div>
+        <div 
+          className="flex items-center px-4 py-2 cursor-pointer hover:bg-blue-50"
+          onClick={() => setCurrentView('companies')}
+        >
+          <Building2 className="mr-3" />
+          <span>Companies</span>
+        </div>
+      </nav>
+    </div>
+  );
+
+  const AdminNavigation = () => (
+    <div className="w-64 bg-white shadow-lg">
+      <div className="p-4">
+        <h1 className="text-2xl font-bold text-blue-600">MarketSage</h1>
+      </div>
+      <nav className="mt-6 space-y-2">
+        <div 
+          className="flex items-center px-4 py-2 cursor-pointer hover:bg-blue-50"
+          onClick={() => setCurrentView('home')}
+        >
+          <ArrowLeft className="mr-3" />
+          <span>Back to Home</span>
+        </div>
+        <div 
+          className="flex items-center px-4 py-2 cursor-pointer hover:bg-blue-50"
+          onClick={() => setCurrentView('admin')}
+        >
+          <Building2 className="mr-3" />
+          <span>Admin Panel</span>
+        </div>
+      </nav>
+    </div>
+  );
+
+  const MainLayout = ({ children }) => (
+    <div className="flex h-screen bg-gray-100">
+      {isAdmin ? <AdminNavigation /> : <UserNavigation />}
       <div className="flex-1 overflow-y-auto p-8">
-        {isAdmin ? (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">Admin Dashboard</h2>
-              <button
-                onClick={() => setShowModal(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
-              >
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Company
-              </button>
-            </div>
-            
-            {/* Add Company Modal */}
-            {showModal && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                  <h3 className="text-xl font-bold mb-4">Add New Company</h3>
-                  <div className="space-y-4">
-                    <input
-                      type="text"
-                      placeholder="Company Name"
-                      className="w-full p-2 border rounded"
-                      value={newCompany.name}
-                      onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
-                    />
-                    <input
-                      type="text"
-                      placeholder="Company Type"
-                      className="w-full p-2 border rounded"
-                      value={newCompany.type}
-                      onChange={(e) => setNewCompany({...newCompany, type: e.target.value})}
-                    />
-                    <input
-                      type="text"
-                      placeholder="Founded Year"
-                      className="w-full p-2 border rounded"
-                      value={newCompany.foundedYear}
-                      onChange={(e) => setNewCompany({...newCompany, foundedYear: e.target.value})}
-                    />
-                    <div className="space-y-2">
-                      <input
-                        type="text"
-                        placeholder="Market Cap"
-                        className="w-full p-2 border rounded"
-                        value={newCompany.info.marketCap}
-                        onChange={(e) => setNewCompany({
-                          ...newCompany,
-                          info: { ...newCompany.info, marketCap: e.target.value }
-                        })}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Stock P/E"
-                        className="w-full p-2 border rounded"
-                        value={newCompany.info.stockPE}
-                        onChange={(e) => setNewCompany({
-                          ...newCompany,
-                          info: { ...newCompany.info, stockPE: e.target.value }
-                        })}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Current Value"
-                        className="w-full p-2 border rounded"
-                        value={newCompany.info.currentValue}
-                        onChange={(e) => setNewCompany({
-                          ...newCompany,
-                          info: { ...newCompany.info, currentValue: e.target.value }
-                        })}
-                      />
-                      <input
-                        type="text"
-                        placeholder="ROE"
-                        className="w-full p-2 border rounded"
-                        value={newCompany.info.roe}
-                        onChange={(e) => setNewCompany({
-                          ...newCompany,
-                          info: { ...newCompany.info, roe: e.target.value }
-                        })}
-                      />
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                      <button
-                        onClick={() => setShowModal(false)}
-                        className="px-4 py-2 border rounded hover:bg-gray-100"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleAddCompany}
-                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                      >
-                        Add Company
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {companies.map((company) => (
-                <CompanyCard key={company.id} company={company} showAdmin={true} />
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            <h2 className="text-2xl font-bold mb-6">Company Directory</h2>
-            
-            {/* Favorite Companies Section */}
-            {favoriteCompanies.length > 0 && (
-              <div>
-                <h3 className="text-xl font-bold mb-4">Favorite Companies</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {favoriteCompanies.map((company) => (
-                    <CompanyCard key={company.id} company={company} />
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {/* All Companies Section */}
+        {children}
+      </div>
+    </div>
+  );
+
+  const renderContent = () => {
+    switch (currentView) {
+      case 'home':
+        return <HomePage />;
+      case 'admin':
+        return (
+          <MainLayout>
             <div>
-              <h3 className="text-xl font-bold mb-4">All Companies</h3>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Admin Dashboard</h2>
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+                >
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add Company
+                </button>
+              </div>
+              
+              <SearchBar />
+              
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {companies.map((company) => (
+                {filteredCompanies.map((company) => (
+                  <CompanyCard key={company.id} company={company} showAdmin={true} />
+                ))}
+              </div>
+            </div>
+          </MainLayout>
+        );
+      case 'user':
+        return (
+          <MainLayout>
+            <div className="space-y-8">
+              <h2 className="text-2xl font-bold mb-6">User Dashboard</h2>
+              <SearchBar />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredCompanies.map((company) => (
                   <CompanyCard key={company.id} company={company} />
                 ))}
               </div>
             </div>
+          </MainLayout>
+        );
+      case 'favorites':
+        return (
+          <MainLayout>
+            <div className="space-y-8">
+              <h2 className="text-2xl font-bold mb-6">Favorite Companies</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {favoriteCompanies.map((company) => (
+                  <CompanyCard key={company.id} company={company} />
+                ))}
+              </div>
+            </div>
+          </MainLayout>
+        );
+      case 'companies':
+        return (
+          <MainLayout>
+            <div className="space-y-8">
+              <h2 className="text-2xl font-bold mb-6">All Companies</h2>
+              <SearchBar />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredCompanies.map((company) => (
+                  <CompanyCard key={company.id} company={company} />
+                ))}
+              </div>
+            </div>
+          </MainLayout>
+        );
+      default:
+        return <HomePage />;
+    }
+  };
+
+  return (
+    <div>
+      {renderContent()}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold mb-4">Add New Company</h3>
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="Company Name"
+                className="w-full p-2 border rounded"
+                value={newCompany.name}
+                onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
+              />
+              <input
+                type="text"
+                placeholder="Company Type"
+                className="w-full p-2 border rounded"
+                value={newCompany.type}
+                onChange={(e) => setNewCompany({...newCompany, type: e.target.value})}
+              />
+              <input
+                type="text"
+                placeholder="Founded Year"
+                className="w-full p-2 border rounded"
+                value={newCompany.foundedYear}
+                onChange={(e) => setNewCompany({...newCompany, foundedYear: e.target.value})}
+              />
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  placeholder="Market Cap"
+                  className="w-full p-2 border rounded"
+                  value={newCompany.info.marketCap}
+                  onChange={(e) => setNewCompany({
+                    ...newCompany,
+                    info: { ...newCompany.info, marketCap: e.target.value }
+                  })}
+                />
+                <input
+                  type="text"
+                  placeholder="Stock P/E"
+                  className="w-full p-2 border rounded"
+                  value={newCompany.info.stockPE}
+                  onChange={(e) => setNewCompany({
+                    ...newCompany,
+                    info: { ...newCompany.info, stockPE: e.target.value }
+                  })}
+                />
+                <input
+                  type="text"
+                  placeholder="Current Value"
+                  className="w-full p-2 border rounded"
+                  value={newCompany.info.currentValue}
+                  onChange={(e) => setNewCompany({
+                    ...newCompany,
+                    info: { ...newCompany.info, currentValue: e.target.value }
+                  })}
+                />
+                <input
+                  type="text"
+                  placeholder="ROE"
+                  className="w-full p-2 border rounded"
+                  value={newCompany.info.roe}
+                  onChange={(e) => setNewCompany({
+                    ...newCompany,
+                    info: { ...newCompany.info, roe: e.target.value }
+                  })}
+                />
+              </div>
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 border rounded hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddCompany}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Add Company
+                </button>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
